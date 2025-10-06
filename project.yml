@@ -3,14 +3,11 @@ options:
   bundleIdPrefix: com.jetteck
   deploymentTarget:
     iOS: "15.0"
-  createIntermediateGroups: true
 targets:
   NFCReaderTool:
-    type: application
     platform: iOS
+    type: application
     sources: [ . ]
-    info:
-      path: Info.plist
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.jetteck.nfcreadertool
@@ -20,3 +17,5 @@ targets:
         DEVELOPMENT_TEAM: ""
         CODE_SIGNING_ALLOWED: NO
         CODE_SIGNING_REQUIRED: NO
+    info:
+      path: Info.plist
