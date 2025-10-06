@@ -13,11 +13,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Xcode
-        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
 
       - name: Build app for iOS simulator
-        working-directory: NFCReaderTool
         run: |
           xcodebuild -project NFCReaderTool.xcodeproj \
             -scheme NFCReaderTool \
@@ -26,7 +28,6 @@ jobs:
             archive
 
       - name: Package .ipa
-        working-directory: NFCReaderTool
         run: |
           mkdir -p build/ipa
           xcodebuild -exportArchive \
@@ -39,4 +40,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: NFCReaderTool-IPA
-          path: NFCReaderTool/build/ipa
+          path: build/ipa
