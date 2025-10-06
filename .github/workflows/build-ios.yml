@@ -1,4 +1,4 @@
-name: Build iOS App (NFC Reader Tool)
+name: Build unsigned iOS App (NFCReaderTool)
 
 on:
   workflow_dispatch:
@@ -8,36 +8,68 @@ on:
 jobs:
   build:
     runs-on: macos-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install XcodeGen
-        run: brew install xcodegen
-
-      - name: Generate Xcode project
-        run: xcodegen generate
-
-      - name: Build app for iOS simulator
+      - name: Install Homebrew (if missing) & tools
         run: |
+          # Homebrew is available on macos-latest; install xcodegen
+          brew update
+          brew install xcodegen || true
+
+      - name: Generate Xcode project with XcodeGen
+        run: |
+          # generate the project (needs project.yml at repo root)
+          xcodegen generate
+
+      - name: Create build dirs
+        run: mkdir -p build
+
+      - name: Build (archive) without code signing
+        run: |
+          # Ensure we build for device (iphoneos). We set code signing off.
           xcodebuild -project NFCReaderTool.xcodeproj \
             -scheme NFCReaderTool \
-            -archivePath build/NFCReaderTool.xcarchive \
+            -sdk iphoneos \
             -configuration Release \
+            -archivePath build/NFCReaderTool.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
             archive
 
-      - name: Package .ipa
+      - name: Package unsigned .ipa
         run: |
-          mkdir -p build/ipa
-          xcodebuild -exportArchive \
-            -archivePath build/NFCReaderTool.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath build/ipa
-          echo "Packaging complete"
+          ARCHIVE_PATH="build/NFCReaderTool.xcarchive"
+          APP_NAME="NFCReaderTool.app"
+          APP_PATH="$ARCHIVE_PATH/Products/Applications/$APP_NAME"
 
-      - name: Upload build artifact (.ipa)
+          echo "Looking for app at $APP_PATH"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "ERROR: app directory not found at $APP_PATH"
+            echo "Archive contents:"
+            ls -R "$ARCHIVE_PATH" || true
+            exit 1
+          fi
+
+          # create Payload with .app
+          rm -rf Payload
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+
+          # produce ZIP (IPA) — unsigned
+          ZIP_PATH="build/NFCReaderTool-unsigned.ipa"
+          (cd Payload && zip -r "../$ZIP_PATH" .) >/dev/null
+          rm -rf Payload
+
+          echo "Unsigned .ipa created at $ZIP_PATH"
+          ls -lh build || true
+
+      - name: Upload unsigned .ipa
         uses: actions/upload-artifact@v4
         with:
-          name: NFCReaderTool-IPA
-          path: build/ipa
+          name: NFCReaderTool-unsigned-IPA
+          path: build/NFCReaderTool-unsigned.ipa
