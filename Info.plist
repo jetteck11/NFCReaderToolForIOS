@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDisplayName</key>
+    <string>NFC Reader Tool</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.example.NFCReaderTool</string>
+    <key>CFBundleName</key>
+    <string>NFC Reader Tool</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+    </array>
+    <key>NFCReaderUsageDescription</key>
+    <string>Cette application utilise la puce NFC pour lire l'UID des tags ISO 14443 / ISO 15693.</string>
+</dict>
+</plist>
