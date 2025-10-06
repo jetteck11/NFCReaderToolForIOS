@@ -29,12 +29,25 @@ jobs:
 
     - name: Package IPA
       run: |
-        mkdir -p build/ipa/Payload
-        cp -R build/Release-iphoneos/NFCReaderTool.app build/ipa/Payload/
-        cd build/ipa
-        zip -r NFCReaderTool.ipa Payload
-        mv NFCReaderTool.ipa ../
-        echo "IPA generated at build/NFCReaderTool.ipa"
+        - name: Package IPA
+  run: |
+    # find the actual .app path
+    APP_PATH=$(find build -name "NFCReaderTool.app" | head -n 1)
+    if [ ! -d "$APP_PATH" ]; then
+      echo "ERROR: .app not found in build directory"
+      ls -R build
+      exit 1
+    fi
+    echo "Found app at $APP_PATH"
+
+    mkdir -p build/ipa/Payload
+    cp -R "$APP_PATH" build/ipa/Payload/
+
+    cd build/ipa
+    zip -r NFCReaderTool.ipa Payload
+    mv NFCReaderTool.ipa ../
+    echo "IPA generated at build/NFCReaderTool.ipa"
+
 
     - name: Upload IPA
       uses: actions/upload-artifact@v3
