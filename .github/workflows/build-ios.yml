@@ -18,19 +18,19 @@ jobs:
 
       - name: Build app for iOS simulator
         run: |
-          xcodebuild -project NFCReaderToolForIOS.xcodeproj \
-                     -scheme NFCReaderTool \
-                     -destination 'generic/platform=iOS' \
-                     -configuration Release \
-                     clean build | xcpretty
+          xcodebuild -project NFCReaderTool.xcodeproj \
+           -scheme NFCReaderTool \
+           -archivePath build/NFCReaderTool.xcarchive \
+           -configuration Release \
+           archive
 
       - name: Package .ipa
         run: |
           mkdir -p build/ipa
           xcodebuild -exportArchive \
-                     -archivePath build/Release-iphoneos/NFCReaderToolForIOS.xcarchive \
-                     -exportOptionsPlist ExportOptions.plist \
-                     -exportPath build/ipa || true
+           -archivePath build/NFCReaderTool.xcarchive \
+           -exportOptionsPlist ExportOptions.plist \
+           -exportPath build/ipa
           echo "Packaging complete"
 
       - name: Upload build artifact (.ipa)
