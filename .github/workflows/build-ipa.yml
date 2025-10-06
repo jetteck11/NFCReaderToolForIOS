@@ -1,0 +1,43 @@
+name: Build IPA for AltStore
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v2
+      with:
+        xcode-version: '16.4'
+
+    - name: Build .app
+      run: |
+        xcodebuild clean \
+          -project NFCReaderTool.xcodeproj \
+          -scheme NFCReaderTool \
+          -configuration Release \
+          -sdk iphoneos \
+          BUILD_DIR=$(pwd)/build
+
+    - name: Package IPA
+      run: |
+        mkdir -p build/ipa/Payload
+        cp -R build/Release-iphoneos/NFCReaderTool.app build/ipa/Payload/
+        cd build/ipa
+        zip -r NFCReaderTool.ipa Payload
+        mv NFCReaderTool.ipa ../
+        echo "IPA generated at build/NFCReaderTool.ipa"
+
+    - name: Upload IPA
+      uses: actions/upload-artifact@v3
+      with:
+        name: NFCReaderTool.ipa
+        path: build/NFCReaderTool.ipa
