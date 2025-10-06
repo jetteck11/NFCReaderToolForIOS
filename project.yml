@@ -1,0 +1,17 @@
+name: NFCReaderTool
+options:
+  bundleIdPrefix: com.jetteck
+  deploymentTarget:
+    iOS: "15.0"
+  createIntermediateGroups: true
+targets:
+  NFCReaderTool:
+    type: application
+    platform: iOS
+    sources: [ . ]
+    info:
+      path: Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jetteck.nfcreadertool
+        SWIFT_VERSION: 5.0
