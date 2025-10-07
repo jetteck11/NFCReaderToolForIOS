@@ -1,53 +1,43 @@
 name: Build IPA for AltStore
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Xcode
-      uses: actions/setup-xcode-version@v1.6.0
-      with:
-        xcode-version: '16.4'
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest
 
-    - name: Build .app
-      run: |
-        xcodebuild clean \
-          -project NFCReaderTool.xcodeproj \
-          -scheme NFCReaderTool \
-          -configuration Release \
-          -sdk iphoneos \
-          BUILD_DIR=$(pwd)/build
+      - name: Install dependencies
+        run: |
+          brew install xcodegen || true
+          xcodegen generate
 
-    - name: Package IPA
-      run: |
-        # find the actual .app path
-        APP_PATH=$(find build -name "NFCReaderTool.app" | head -n 1)
-        if [ ! -d "$APP_PATH" ]; then
-          echo "ERROR: .app not found in build directory"
-          ls -R build
-          exit 1
-        fi
-        echo "Found app at $APP_PATH"
+      - name: Build app (unsigned)
+        run: |
+          xcodebuild -scheme "NFCReaderTool" \
+                     -sdk iphoneos \
+                     -configuration Release \
+                     -archivePath $PWD/build/NFCReaderTool.xcarchive \
+                     clean archive CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 
-        mkdir -p build/ipa/Payload
-        cp -R "$APP_PATH" build/ipa/Payload/
+      - name: Export unsigned IPA
+        run: |
+          mkdir -p build/ipa/Payload
+          cp -r build/NFCReaderTool.xcarchive/Products/Applications/NFCReaderTool.app build/ipa/Payload/
+          cd build/ipa
+          zip -r ../NFCReaderTool.ipa Payload
 
-        cd build/ipa
-        zip -r NFCReaderTool.ipa Payload
-        mv NFCReaderTool.ipa ../
-        echo "IPA generated at build/NFCReaderTool.ipa"
-
-    - name: Upload IPA
-      uses: actions/upload-artifact@v4
-      with:
-        name: NFCReaderTool.ipa
-        path: build/NFCReaderTool.ipa
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: NFCReaderTool
+          path: build/NFCReaderTool.ipa
